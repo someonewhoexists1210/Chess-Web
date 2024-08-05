@@ -1,4 +1,4 @@
-
+GLOBALS = {}
 const sqSize = 60, boardSize = sqSize * 8;
 function imageLoad() {
     GLOBALS.Images = new Map([
