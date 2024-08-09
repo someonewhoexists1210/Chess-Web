@@ -60,15 +60,62 @@ class Move{
         this.color = Number(this.piece.isBlack)
         if (this.capture){
             this.takenPiece = GLOBALS.currentBoard.squareoccupied(to, null, true)   
+            if (passant){
+                this.passant = true
+                let frontOrBack = (this.color) ? to[0] + (Number(to[1]) + 1):to[0] + (Number(to[1]) - 1)
+                this.takenPiece = GLOBALS.currentBoard.squareoccupied(frontOrBack, null, true)
+            }
         }
     }
 }
 
 class Board {
     constructor() {
-        this.whites_turn = true;
-        this.pieces = [];
+        this.bking = new King(true, 'e8');
+        this.wking = new King(false, 'e1');
         this.selected = undefined;
+        this.whites_turn = true;
+        this.pieces = [
+            new Pawn(false, 'a2'),
+            new Pawn(false, 'b2'),
+            new Pawn(false, 'c2'),
+            new Pawn(false, 'd2'),
+            new Pawn(false, 'e2'),
+            new Pawn(false, 'f2'),
+            new Pawn(false, 'g2'),
+            new Pawn(false, 'h2'),
+
+            new Pawn(true, 'a7'),
+            new Pawn(true, 'b7'),
+            new Pawn(true, 'c7'),
+            new Pawn(true, 'd7'),
+            new Pawn(true, 'e7'),
+            new Pawn(true, 'f7'),
+            new Pawn(true, 'g7'),
+            new Pawn(true, 'h7'),
+
+            new Bishop(false, 'c1'),
+            new Bishop(false, 'f1'),
+            new Bishop(true, 'c8'),
+            new Bishop(true, 'f8'),
+
+            new Knight(false, 'b1'),
+            new Knight(false, 'g1'),
+            new Knight(true, 'b8'),
+            new Knight(true, 'g8'),
+
+            new Rook(false, 'h1'),
+            new Rook(false, 'a1'),
+            new Rook(true, 'a8'),
+            new Rook(true, 'h8'),
+
+            new Queen(false, 'd1'),
+            new Queen(true, 'd8'),
+
+            this.bking, this.wking
+        ];
+        this.wpieces = [];
+        this.bpieces = [];
     }
 
     /**
@@ -444,6 +491,19 @@ class Piece {
     
     getMoves() {
         this.moves = new Set([...this.straight(null), ...this.diag(null)])
+    }
+}
+class King extends Piece {
+    constructor(isBlack, sq) {
+        super(isBlack, sq, Infinity);
+        this.img = GLOBALS.Images.get("King")[Number(isBlack)];
+        this.moved = false;
+        this.incheck = false;
+
+    }
+
+    getMoves() {
+        this.moves = new Set([...this.straight(1), ...this.diag(1)])        
     }
 }
 
