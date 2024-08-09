@@ -146,6 +146,46 @@ class Board {
     
     }
 
+    getSq(pos){
+        for (let sq of boardpos.keys()){
+            let [posX, posY] = boardpos.get(sq)
+            if (posX <= pos[0] && pos[0] <= posX + sqSize){
+                if (posY <= pos[1] && pos[1] <= posY + sqSize){
+                    return sq
+                }
+            }
+        }
+        return null
+    }
+
+    async checkClick(e){
+        let pos = getMousePosition(e);
+        if (pos[0] <= boardSize && pos[1] <= boardSize) {
+            let sq = this.getSq(pos)
+            for (let x of this.pieces){
+                if (x.sq == sq) {
+                    if (this.whites_turn != x.isBlack && this.whites_turn != this.color){
+                        x.select();
+                        this.selected = {sq: sq, piece: x};
+                        return;
+                    }
+                }
+            }
+            if (this.selected != undefined){
+                for (let o of this.selected.piece.moves){
+                    if (o.to == sq){
+                        //Move Piece
+                        this.selected = undefined
+                        return;
+                    }
+                }
+            }
+            
+            gameCanvas.drawBoard()            
+            for (let x of this.pieces){x.draw()}
+        }
+    }
+
     /**
      * 
      * @param {Boolean} whiteDown 
@@ -167,7 +207,9 @@ class Board {
             }
         }
     }
-}class Piece {
+    
+};
+class Piece {
     constructor(isBlack, sq, points) {  
         this.isBlack = isBlack;
         this.img = null;
@@ -446,6 +488,17 @@ const gameCanvas = {
     }
 };
 
+function getMousePosition(event) {
+    let rect = gameCanvas.canvas.getBoundingClientRect();
+    let x = event.clientX - rect.left;
+    let y = event.clientY - rect.top;
+    return [x, y];
+};
+gameCanvas.canvas.addEventListener('mousedown', function (e) {
+    if (GLOBALS.currentBoard != undefined){
+        GLOBALS.currentBoard.checkClick(e)
+    }
+});
 function loadPage() {
     gameCanvas.start()
     GLOBALS.currentBoard = new Board()
