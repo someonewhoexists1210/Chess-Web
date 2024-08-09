@@ -1,3 +1,4 @@
+
 GLOBALS = {}
 const sqSize = 60, boardSize = sqSize * 8;
 function imageLoad() {
@@ -38,12 +39,30 @@ function imageLoad() {
 })
 };
 
+const charcode = (l) => l.charCodeAt(0) - 96 ;
+const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1)
+
 const boardpos = new Map();
 
 for (let i = 0; i <= 7; i++){
     for (let y = 0; y <= 7; y++){
         boardpos.set(String.fromCharCode(i+97) + (y+1), [i * sqSize, boardSize - (sqSize * (y+1))])
     }}
+
+class Move{
+    constructor(from, to, passant = false){
+        this.from = from;
+        this.to = to;
+        this.capture = GLOBALS.currentBoard.squareoccupied(to)
+        if (passant){this.capture = true}
+        this.piece = GLOBALS.currentBoard.squareoccupied(from, null, true)
+        if (!this.piece){debugger}
+        this.color = Number(this.piece.isBlack)
+        if (this.capture){
+            this.takenPiece = GLOBALS.currentBoard.squareoccupied(to, null, true)   
+        }
+    }
+}
 
 class Board {
     constructor() {
@@ -151,7 +170,7 @@ class Board {
 }class Piece {
     constructor(isBlack, sq, points) {  
         this.isBlack = isBlack;
-        this.img = n,ull;
+        this.img = null;
         this.sq = sq;
         this.points = points;
         this.moves = new Set()
@@ -270,6 +289,120 @@ class Board {
     
 
 
+}class Pawn extends Piece {
+    constructor(isBlack, sq) {
+        super(isBlack, sq, 1);
+        this.img = GLOBALS.Images.get("Pawn")[Number(isBlack)];
+        
+    }
+
+    getMoves() {
+        let moves = new Set();
+        let sqinfro = (this.isBlack) ? GLOBALS.currentBoard.sqback(this.sq) : GLOBALS.currentBoard.sqfro(this.sq)
+        
+        
+        if (!GLOBALS.currentBoard.squareoccupied(sqinfro, null)){
+            moves.add(new Move(this.sq, sqinfro))
+        }
+        if ((this.sq[1] == '7' && this.isBlack) && !GLOBALS.currentBoard.squareoccupied(GLOBALS.currentBoard.sqback(sqinfro), null) && moves.size == 1){
+            moves.add(new Move(this.sq, GLOBALS.currentBoard.sqback(sqinfro)))
+        
+        }else if ((this.sq[1] == '2' && !this.isBlack) && !GLOBALS.currentBoard.squareoccupied(GLOBALS.currentBoard.sqfro(sqinfro), null) && moves.size == 1){
+            moves.add(new Move(this.sq, GLOBALS.currentBoard.sqfro(sqinfro)))
+        }
+
+        let cap1 = GLOBALS.currentBoard.sqleft(sqinfro), cap2 = GLOBALS.currentBoard.sqright(sqinfro)
+        if (GLOBALS.currentBoard.squareoccupied(cap1, !this.isBlack)){
+            moves.add(new Move(this.sq, cap1))
+        }
+
+        if (GLOBALS.currentBoard.squareoccupied(cap2, !this.isBlack)){
+            moves.add(new Move(this.sq, cap2))
+        }
+
+
+        let x = this.enpassant()
+        if (x != undefined){
+            moves.add(new Move(this.sq, x.targetSq, true))
+        }
+
+        this.moves = new Set(moves)
+        
+    }
+    enpassant() {
+        let mv;
+        if ((this.sq[1] == '4' && this.isBlack) || (this.sq[1] == '5' && !this.isBlack)){
+            let p = GLOBALS.currentBoard.lastMove
+
+            if (p.piece instanceof Pawn){
+                if (Number(p.from[1]) - Number(p.to[1]) == 2 || Number(p.from[1]) - Number(p.to[1]) == -2){
+                    if (GLOBALS.currentBoard.sqright(this.sq) == p.to){
+                        mv =  (this.isBlack) ? GLOBALS.currentBoard.sqback(GLOBALS.currentBoard.sqright(this.sq)):
+                        GLOBALS.currentBoard.sqfro(GLOBALS.currentBoard.sqright(this.sq));
+                    }else if (GLOBALS.currentBoard.sqleft(this.sq) == p.to){
+                        mv =  (this.isBlack) ? GLOBALS.currentBoard.sqback(GLOBALS.currentBoard.sqleft(this.sq)):
+                        GLOBALS.currentBoard.sqfro(GLOBALS.currentBoard.sqleft(this.sq));
+                    }
+                }
+            }
+        }
+        if (mv){
+            return {targetSq: mv}
+        }
+    }
+
+}class Bishop extends Piece {
+    constructor(isBlack, sq) {
+        super(isBlack, sq, 3);
+        this.img = GLOBALS.Images.get("Bishop")[Number(isBlack)];
+    }
+
+    getMoves() {
+        this.moves = this.diag(null)
+    }
+}class Knight extends Piece {
+    constructor(isBlack, sq) {
+        super(isBlack, sq, 3);
+        this.img = GLOBALS.Images.get("Knight")[Number(isBlack)];
+    }
+
+    getMoves() {
+        this.moves = new Set();   
+        let possibleMoves = [
+            GLOBALS.currentBoard.sqfro(GLOBALS.currentBoard.sqfro(GLOBALS.currentBoard.sqleft(this.sq))),
+            GLOBALS.currentBoard.sqfro(GLOBALS.currentBoard.sqfro(GLOBALS.currentBoard.sqright(this.sq))),
+            GLOBALS.currentBoard.sqback(GLOBALS.currentBoard.sqback(GLOBALS.currentBoard.sqleft(this.sq))),
+            GLOBALS.currentBoard.sqback(GLOBALS.currentBoard.sqback(GLOBALS.currentBoard.sqright(this.sq))),
+            GLOBALS.currentBoard.sqright(GLOBALS.currentBoard.sqright(GLOBALS.currentBoard.sqfro(this.sq))),
+            GLOBALS.currentBoard.sqright(GLOBALS.currentBoard.sqright(GLOBALS.currentBoard.sqback(this.sq))),
+            GLOBALS.currentBoard.sqleft(GLOBALS.currentBoard.sqleft(GLOBALS.currentBoard.sqfro(this.sq))),
+            GLOBALS.currentBoard.sqleft(GLOBALS.currentBoard.sqleft(GLOBALS.currentBoard.sqback(this.sq))),
+        ]
+        for (let mv of possibleMoves) {
+            if (mv != null && !GLOBALS.currentBoard.squareoccupied(mv, this.isBlack)) {
+                this.moves.add(new Move(this.sq, mv))
+            }
+        }
+
+    }
+}class Rook extends Piece {
+    constructor(isBlack, sq) {
+        super(isBlack, sq, 5);
+        this.img = GLOBALS.Images.get("Rook")[Number(isBlack)];
+        this.moved = false;
+    }
+    getMoves() {
+        this.moves = this.straight(null)
+    }
+}class Queen extends Piece {
+    constructor(isBlack, sq) {
+        super(isBlack, sq, 9);
+        this.img = GLOBALS.Images.get("Queen")[Number(isBlack)];
+    }
+    
+    getMoves() {
+        this.moves = new Set([...this.straight(null), ...this.diag(null)])
+    }
 }
 
 const gameCanvas = {
@@ -312,8 +445,6 @@ const gameCanvas = {
         this.canvas.style.display = "block"
     }
 };
-
-
 
 function loadPage() {
     gameCanvas.start()
