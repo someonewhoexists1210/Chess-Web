@@ -567,5 +567,5 @@ function start() {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-    document.getElementById('start').addEventListener('onclick', start)
+    document.getElementById('start').onclick = start
 })
