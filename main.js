@@ -566,4 +566,6 @@ function start() {
     GLOBALS.currentBoard = new Board()
 }
 
-document.getElementById('start').addEventListener('onclick', start)
+document.addEventListener("DOMContentLoaded", function () {
+    document.getElementById('start').addEventListener('onclick', start)
+})
