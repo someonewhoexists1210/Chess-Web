@@ -116,6 +116,7 @@ class Board {
         ];
         this.wpieces = [];
         this.bpieces = [];
+        this.pieces.forEach(piece => piece.draw());
     }
 
     /**
@@ -559,7 +560,7 @@ gameCanvas.canvas.addEventListener('mousedown', function (e) {
         GLOBALS.currentBoard.checkClick(e)
     }
 });
-function loadPage() {
+function start() {
     gameCanvas.start()
     GLOBALS.currentBoard = new Board()
 }
