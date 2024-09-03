@@ -560,7 +560,10 @@ gameCanvas.canvas.addEventListener('mousedown', function (e) {
         GLOBALS.currentBoard.checkClick(e)
     }
 });
+
 function start() {
     gameCanvas.start()
     GLOBALS.currentBoard = new Board()
 }
+
+document.getElementById('start').addEventListener('onclick', start)
